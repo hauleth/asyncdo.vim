@@ -14,7 +14,7 @@ in background).
 COMMANDS                                   *asyncdo-commands*
 
                                            *:AsyncDo*
-:AsyncDo {cmd}         Run task in the background redirecting output to
+:AsyncDo[!] {cmd}      Run task in the background redirecting output to
                        temporary file that is loaded using |:cgetfile| after
                        task finishes.
 

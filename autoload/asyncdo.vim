@@ -8,6 +8,7 @@ func! s:finalize(file, cmd, nojump) abort
         endif
     finally
         call setqflist([], 'a', {'title': a:cmd})
+        call delete(a:file)
     endtry
 endfunc
 
@@ -43,5 +44,7 @@ func! asyncdo#stop() abort
         else
             call job_stop(g:asyncdo_job)
         endif
+
+        unlet g:asyncdo_job
     endif
 endfunc

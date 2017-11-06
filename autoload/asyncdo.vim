@@ -53,7 +53,7 @@ func! s:build(scope, setlist, prefix) abort
 endfunc
 
 let s:qf = s:build(g:, function('setqflist'), 'c')
-let s:ll = s:build(w:, function('setqflist'), 'c')
+let s:ll = s:build(w:, function('setloclist'), 'l')
 
 func! asyncdo#run(...) abort
     call call(s:qf.run, a:000)

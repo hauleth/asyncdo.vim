@@ -1,50 +1,80 @@
-func! s:finalize(file, cmd, nojump) abort
-    unlet! g:asyncdo_job
+func! s:finalize(scope, prefix, settitle) abort
+    let l:job = a:scope.asyncdo
+    silent! unlet! a:scope.asyncdo
     try
-        if a:nojump
-            exe 'cgetfile '.a:file
+        if l:job.jump
+            exe a:prefix.'getfile '.l:job.file
         else
-            exe 'cfile '.a:file
+            exe a:prefix.'file '.l:job.file
         endif
+
+        call a:settitle(l:job.cmd, l:job.nr)
     finally
-        call setqflist([], 'a', {'title': a:cmd})
-        call delete(a:file)
+        call delete(l:job.file)
     endtry
 endfunc
 
-func! asyncdo#run(nojump, ...) abort
-    if exists('g:asyncdo_job')
-        echoerr 'There is currently running job, just wait'
-        return
-    endif
-
-    call setqflist([], 'r')
-    let l:tmp = tempname()
-    let l:cmd = join(a:000)
-    let l:spec = [&shell, &shellcmdflag, printf(l:cmd.&shellredir, l:tmp)]
-    let l:nojump = a:nojump
-
-    let g:qf_quickfix_titles = []
-    if has('nvim')
-        let g:asyncdo_job = jobstart(l:spec, {
-                    \ 'on_exit': {-> s:finalize(l:tmp, l:cmd, a:nojump)}
-                    \ })
-    else
-        let g:asyncdo_job = job_start(l:spec, {
-                    \ 'in_io': 'null','out_io': 'null','err_io': 'null',
-                    \ 'exit_cb': {-> s:finalize(l:tmp, l:cmd, a:nojump)}
-                    \ })
-    endif
-endfunc
-
-func! asyncdo#stop() abort
-    if exists('g:asyncdo_job')
-        if has('nvim')
-            call jobstop(g:asyncdo_job)
-        else
-            call job_stop(g:asyncdo_job)
+func! s:build(scope, prefix, reset, settitle) abort
+    function! Run(nojump, ...) abort closure
+        if type(get(a:scope, 'asyncdo')) == v:t_dict
+            echoerr 'There is currently running job, just wait'
+            return
         endif
 
-        unlet g:asyncdo_job
-    endif
+        let l:job = {}
+        let l:job.nr = win_getid()
+        let l:job.file = tempname()
+        let l:job.cmd = join(a:000)
+        let l:job.jump = !a:nojump
+
+        let l:spec = [&shell, &shellcmdflag, printf(l:job.cmd.&shellredir, l:job.file)]
+        let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}
+
+        call a:reset(l:job.nr)
+        if has('nvim')
+            let l:job.id = jobstart(l:spec, {'on_exit': l:Cb})
+        else
+            let l:job.id = job_start(l:spec, {
+                        \   'in_io': 'null','out_io': 'null','err_io': 'null',
+                        \   'exit_cb': l:Cb
+                        \ })
+        endif
+
+        let a:scope['asyncdo'] = l:job
+    endfunc
+
+    func! Stop() abort closure
+        let l:job = get(a:scope, 'asyncdo')
+        if l:job
+            if has('nvim')
+                call jobstop(l:job.id)
+            else
+                call job_stop(l:job.id)
+            endif
+
+            unlet! a:scope['asyncdo']
+        endif
+    endfunc
+
+    return { 'run': funcref('Run'), 'stop': funcref('Stop') }
+endfunc
+
+let s:qf = s:build(g:, 'c',
+            \ {nr -> setqflist([], 'r')},
+            \ {title, nr -> setqflist([], 'a', {'title': title})})
+let s:ll = s:build(w:, 'l',
+            \ {nr -> setloclist(nr, [], 'r')},
+            \ {title, nr -> setloclist(nr, [], 'a', {'title': title})})
+
+func! asyncdo#run(...) abort
+    call call(s:qf.run, a:000)
+endfunc
+func! asyncdo#stop(...) abort
+    call call(s:qf.stop, a:000)
+endfunc
+func! asyncdo#lrun(...) abort
+    call call(s:ll.run, a:000)
+endfunc
+func! asyncdo#lstop(...) abort
+    call call(s:ll.run, a:000)
 endfunc

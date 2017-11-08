@@ -3,9 +3,9 @@ func! s:finalize(scope, prefix, settitle) abort
     silent! unlet! a:scope.asyncdo
     try
         if l:job.jump
-            exe a:prefix.'getfile '.l:job.file
-        else
             exe a:prefix.'file '.l:job.file
+        else
+            exe a:prefix.'getfile '.l:job.file
         endif
 
         call a:settitle(l:job.cmd, l:job.nr)

@@ -59,11 +59,9 @@ func! s:build(scope, prefix, reset, settitle) abort
     return { 'run': funcref('Run'), 'stop': funcref('Stop') }
 endfunc
 
-let s:qf = s:build(g:, 'c',
-            \ {nr -> setqflist([], 'r')},
+let s:qf = s:build(g:, 'c', {nr -> setqflist([], 'r')},
             \ {title, nr -> setqflist([], 'a', {'title': title})})
-let s:ll = s:build(w:, 'l',
-            \ {nr -> setloclist(nr, [], 'r')},
+let s:ll = s:build(w:, 'l', {nr -> setloclist(nr, [], 'r')},
             \ {title, nr -> setloclist(nr, [], 'a', {'title': title})})
 
 func! asyncdo#run(...) abort

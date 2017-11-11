@@ -1,7 +1,5 @@
 " asyncdo.vim - minimal async runner for Vim 8 and NeoVim
-" Maintainer: Łukasz Niemier <lukasz@niemier.pl>
-
-scriptencoding utf-8
+" Maintainer: Hauleth <lukasz@niemier.pl>
 
 if exists('g:loaded_asyncdo_vim') || !(has('job') || has('nvim')) || &cp
     finish

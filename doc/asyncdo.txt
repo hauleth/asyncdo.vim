@@ -1,6 +1,6 @@
 *asyncdo.txt* Minimal async runner for Vim 8 and NeoVim
 
-Author:  Łukasz Niemier <lukasz@niemier.pl>
+Author:  Hauleth <lukasz@niemier.pl>
 Repo:    https://github.com/hauleth/asyncdo.vim
 License: MIT <https://opensource.org/licenses/MIT>
 

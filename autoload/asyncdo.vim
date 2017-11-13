@@ -1,36 +1,28 @@
 func! s:finalize(scope, prefix, settitle) abort
     let l:job = a:scope.asyncdo
-    silent! unlet! a:scope.asyncdo
     try
-        if l:job.jump
-            exe a:prefix.'file '.l:job.file
-        else
-            exe a:prefix.'getfile '.l:job.file
-        endif
-
+        exe a:prefix.(l:job.jump ? '' : 'get').'file '.l:job.file
         call a:settitle(l:job.cmd, l:job.nr)
     finally
+        unlet! a:scope.asyncdo
         call delete(l:job.file)
     endtry
 endfunc
 
 func! s:build(scope, prefix, reset, settitle) abort
-    function! Run(nojump, cmd, args) abort closure
+    function! Run(nojump, ...) abort closure
         if type(get(a:scope, 'asyncdo')) == v:t_dict
-            echoerr 'There is currently running job, just wait'
-            return
+            echoerr 'There is currently running job, just wait' | return
         endif
 
-        let l:job = {}
-        let l:job.nr = win_getid()
-        let l:job.file = tempname()
-        if a:cmd =~# '\$\*'
-            let l:job.cmd = substitute(a:cmd, '\$\*', join(a:args), 'g')
+        let l:job = {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump}
+        let [l:cmd; l:args] = a:000
+        call map(l:args, {_, a -> expand(a)})
+        if l:cmd =~# '\$\*'
+            let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else
-            let l:job.cmd = join([a:cmd] + a:args)
+            let l:job.cmd = join([l:cmd] + l:args)
         endif
-        let l:job.jump = !a:nojump
-
         let l:spec = [&shell, &shellcmdflag, printf(l:job.cmd.&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}
 
@@ -43,7 +35,6 @@ func! s:build(scope, prefix, reset, settitle) abort
                         \   'exit_cb': l:Cb
                         \ })
         endif
-
         let a:scope['asyncdo'] = l:job
     endfunc
 
@@ -55,7 +46,6 @@ func! s:build(scope, prefix, reset, settitle) abort
             else
                 call job_stop(l:job.id)
             endif
-
             unlet! a:scope['asyncdo']
         endif
     endfunc

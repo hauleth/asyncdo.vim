@@ -4,42 +4,47 @@ Author:  Hauleth <lukasz@niemier.pl>
 Repo:    https://github.com/hauleth/asyncdo.vim
 License: MIT <https://opensource.org/licenses/MIT>
 
-INTRODUCTION                                *asyncdo*
+INTRODUCTION                                    *asyncdo*
 
 Simplest usable async runner for Vim and NeoVim. The reason for creating this
 was that I needed something absurdly simple: run task in the background and
 then populate |quickfix| window with result of such task (mostly running tests
 in background).
 
-FUNCTIONS                                  *asyncdo-functions*
+FUNCTIONS                                       *asyncdo-functions*
 
-asyncdo#run({nojump}, {cmd} ...)           *asyncdo#run()*
-                 Run {cmd} in background and populate |quicklist|. {cmd} should
-                 contain each parameter as separate parameter. Example: >
-                        call asyncdo#run(0, "make", "test")
+asyncdo#run({nojump}, {cmd}, {args})        *asyncdo#run()*
+                 Run {cmd} in background and populate |quicklist|. {args} are
+                 argument list appended to {cmd} or replace $* pattern found
+                 in {cmd}. Example: >
+                        call asyncdo#run(0, "make", ["test"])
 <                 {nojump} decides whether this should jump to first result.
+
+                 Current process definition is stored in |g:asyncdo_job| and
+                 trying to call |asyncdo#run| while that variable is present
+                 will result in error.
 
                  Also see |:AsyncDo| and |g:asyncdo_job|
 
-asyncdo#stop()                             *asyncdo#stop()*
+asyncdo#stop()                                 *asyncdo#stop()*
                 Stop job started by |asyncdo#run()|.
 
                 Also see |:AsyncStop|
 
-asyncdo#lrun({nojump}, {cmd} ...)          *asyncdo#lrun()*
+asyncdo#lrun({nojump}, {cmd}, {args})       *asyncdo#lrun()*
                 The same as |asyncdo#run()| but populates |location-list| and
                 uses |w:asyncdo_job| instead.
 
                 Also see |:LAsyncDo| and |w:asyncdo_job|
-asyncdo#lstop()                            *asyncdo#stop()*
+asyncdo#lstop()                                *asyncdo#stop()*
 
                 Stop job started by |asyncdo#lrun()|.
 
                 Also see |:LAsyncStop|
 
-COMMANDS                                   *asyncdo-commands*
+COMMANDS                                       *asyncdo-commands*
 
-                                           *:AsyncDo*
+                                               *:AsyncDo*
 :AsyncDo[!] {cmd}      Run task in the background redirecting output to
                        temporary file that is loaded using |:cgetfile| after
                        task finishes.
@@ -48,21 +53,21 @@ COMMANDS                                   *asyncdo-commands*
                        simultaneously and will return with error message if
                        you try so.
 
-                                           *:AsyncStop*
+                                               *:AsyncStop*
 :AsyncStop             Stop currently running job using |job_stop()| or
                        |jobstop()| depending on your Vim implementation.
 
-                                           *:LAsyncDo*
+                                               *:LAsyncDo*
 :LAsyncDo[!] {cmd}     Same as |:AsyncDo| but populates |location-list|. Also
                        can be ran once per window, not once globally.
 
-                                           *:LAsyncStop*
+                                               *:LAsyncStop*
 :LAsyncStop            Same as |:AsyncStop| but stops job running for current
                        window instead of global.
 
-VARIABLES                                  *asyncdo-variables*
+VARIABLES                                      *asyncdo-variables*
 
-                                           *g:asyncdo* *w:asyncdo*
+                                               *g:asyncdo* *w:asyncdo*
 Struct containing details about currently running job:
 
     id   - job ID
@@ -72,9 +77,9 @@ Struct containing details about currently running job:
     jump - whether jump or not to firs result after job finish
 
 
-INTEGRATIONS                               *asyncdo-integrations*
+INTEGRATIONS                                   *asyncdo-integrations*
 
-                                           *asyncdo-integrations-statusline*
+                                               *asyncdo-integrations-statusline*
 statusline ~
 
 To display status of |:AsyncDo| in your statusline just check for existence of
@@ -83,31 +88,31 @@ To display status of |:AsyncDo| in your statusline just check for existence of
     let &statusline .= "%{exists('g:asyncdo')?'runing':''}"
 <
 
-                                           *asyncdo-integrations-qf*
+                                               *asyncdo-integrations-qf*
 qf ~
 
 |QuickFixCmdPost| is fired after job is finished, so auto opening
 |quickfix-window| on finish is supported.
 
-                                           *asyncdo-integrations-dispatch*
-                                           *asyncdo-integrations-fugitive*
-                                           *asyncdo-integrations-make*
+                                               *asyncdo-integrations-dispatch*
+                                               *asyncdo-integrations-fugitive*
+                                               *asyncdo-integrations-make*
 Dispatch ~
 
 There is no collision between these two plugins, however for plugins using
 dispatch plugin for async work (like Fugitive) you can add this in your |vimrc|
 to use |:AsyncDo| instead:
 >
-    command! -bang -nargs=* Make call asyncdo#run(<bang>0, &makefile, <f-args>)
+  command! -bang -nargs=* Make call asyncdo#run(<bang>0, &makefile, [<f-args>])
 <
 
-                                           *asyncdo-integrations-grep*
+                                               *asyncdo-integrations-grep*
 Async grep ~
 
 Making |:grep| to run asynchronously is also quite trivial with:
 
 >
-    command! -bang -nargs=* Grep call asyncdo#run(<bang>0, &grepprg, <f-args>)
+  command! -bang -nargs=* Grep call asyncdo#run(<bang>0, &grepprg, [<f-args>])
 <
 
  vim:tw=78:et:ft=help:norl:

@@ -17,10 +17,10 @@ Because it is small, easy and provides everything I need. How small?
  Language            Files        Lines         Code     Comments       Blanks
 -------------------------------------------------------------------------------
  Markdown                1           27           27            0            0
- Plain Text              1          113          113            0            0
- Vim Script              2           96           79            2           15
+ Plain Text              1          118          118            0            0
+ Vim Script              2          100           83            2           15
 -------------------------------------------------------------------------------
- Total                   4          236          219            2           15
+ Total                   4          245          228            2           15
 -------------------------------------------------------------------------------
 ```
 

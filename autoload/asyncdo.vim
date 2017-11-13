@@ -15,7 +15,7 @@ func! s:finalize(scope, prefix, settitle) abort
 endfunc
 
 func! s:build(scope, prefix, reset, settitle) abort
-    function! Run(nojump, ...) abort closure
+    function! Run(nojump, cmd, args) abort closure
         if type(get(a:scope, 'asyncdo')) == v:t_dict
             echoerr 'There is currently running job, just wait'
             return
@@ -24,7 +24,11 @@ func! s:build(scope, prefix, reset, settitle) abort
         let l:job = {}
         let l:job.nr = win_getid()
         let l:job.file = tempname()
-        let l:job.cmd = join(a:000)
+        if a:cmd =~# '\$\*'
+            let l:job.cmd = substitute(a:cmd, '\$\*', join(a:args), 'g')
+        else
+            let l:job.cmd = join([a:cmd] + a:args)
+        endif
         let l:job.jump = !a:nojump
 
         let l:spec = [&shell, &shellcmdflag, printf(l:job.cmd.&shellredir, l:job.file)]

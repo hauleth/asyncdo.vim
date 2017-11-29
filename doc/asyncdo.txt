@@ -36,7 +36,7 @@ asyncdo#lrun({nojump}, {cmd}, {args} ...)       *asyncdo#lrun()*
                 uses |w:asyncdo_job| instead.
 
                 Also see |:LAsyncDo| and |w:asyncdo_job|
-asyncdo#lstop()                                *asyncdo#stop()*
+asyncdo#lstop()                                *asyncdo#lstop()*
 
                 Stop job started by |asyncdo#lrun()|.
 

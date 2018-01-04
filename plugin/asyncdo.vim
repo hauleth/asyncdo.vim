@@ -1,10 +1,12 @@
 " asyncdo.vim - minimal async runner for Vim 8 and NeoVim
 " Maintainer: Hauleth <lukasz@niemier.pl>
 
-if exists('g:loaded_asyncdo_vim') || !(has('job') || has('nvim')) || &cp
+if exists('g:loaded_asyncdo_vim') | finish | endif
+if !(has('job') || has('nvim')) || &cp
     echoerr "Here's a nickel, Kid. Buy a real editor."
     finish
 endif
+
 let g:loaded_asyncdo_vim = 1
 let s:save_cpo = &cpo
 set cpo&vim

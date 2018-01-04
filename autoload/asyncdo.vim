@@ -1,8 +1,13 @@
 func! s:finalize(scope, prefix, settitle) abort
     let l:job = a:scope.asyncdo
     try
+        let l:tmp = &errorformat
+        if get(l:job, 'errorformat')
+            let &errorformat = l:job.errorformat
+        endif
         exe a:prefix.(l:job.jump ? '' : 'get').'file '.l:job.file
         call a:settitle(l:job.cmd, l:job.nr)
+        let &errorformat = l:tmp
     finally
         unlet! a:scope.asyncdo
         call delete(l:job.file)
@@ -10,13 +15,21 @@ func! s:finalize(scope, prefix, settitle) abort
 endfunc
 
 func! s:build(scope, prefix, reset, settitle) abort
-    function! Run(nojump, ...) abort closure
+    function! Run(nojump, cmd, ...) abort closure
         if type(get(a:scope, 'asyncdo')) == v:t_dict
             echoerr 'There is currently running job, just wait' | return
         endif
 
-        let l:job = {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump}
-        let [l:cmd; l:args] = a:000
+        if type(a:cmd) == type({})
+            let l:job = deepcopy(a:cmd)
+            let l:cmd = a:cmd.job
+        else
+            let l:job = {}
+            let l:cmd = a:cmd
+        endif
+
+        call extend(l:job, {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump})
+        let l:args = copy(a:000)
         call map(l:args, {_, a -> expand(a)})
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')

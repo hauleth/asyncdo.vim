@@ -2,7 +2,7 @@ func! s:finalize(scope, prefix, settitle) abort
     let l:job = a:scope.asyncdo
     try
         let l:tmp = &errorformat
-        if get(l:job, 'errorformat')
+        if has_key(l:job, 'errorformat')
             let &errorformat = l:job.errorformat
         endif
         exe a:prefix.(l:job.jump ? '' : 'get').'file '.l:job.file

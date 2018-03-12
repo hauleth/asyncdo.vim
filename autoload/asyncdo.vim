@@ -10,8 +10,8 @@ func! s:finalize(scope, prefix, settitle) abort
         endif
         exe a:prefix.(l:job.jump ? '' : 'get').'file '.l:job.file
         call a:settitle(l:job.cmd, l:job.nr)
-        let &errorformat = l:tmp
     finally
+        let &errorformat = l:tmp
         unlet! a:scope.asyncdo
         call delete(l:job.file)
     endtry

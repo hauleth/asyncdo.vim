@@ -33,7 +33,7 @@ func! s:build(scope, prefix, reset, settitle) abort
 
         call extend(l:job, {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump})
         let l:args = copy(a:000)
-        call map(l:args, {_, a -> expand(a)})
+        call map(l:args, {_, a -> expand(substitute(a, '\\', '\\\\\\', 'g'))})
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else

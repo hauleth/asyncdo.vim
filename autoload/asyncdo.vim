@@ -81,5 +81,5 @@ func! asyncdo#lrun(...) abort
     call call(s:ll.run, a:000)
 endfunc
 func! asyncdo#lstop(...) abort
-    call call(s:ll.run, a:000)
+    call call(s:ll.stop, a:000)
 endfunc

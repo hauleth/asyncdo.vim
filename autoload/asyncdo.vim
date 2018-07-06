@@ -17,7 +17,7 @@ func! s:finalize(scope, prefix, settitle) abort
     endtry
 endfunc
 
-func! s:build(scope, prefix, reset, settitle) abort
+func! s:build(scope, prefix, settitle) abort
     function! Run(nojump, cmd, ...) abort closure
         if type(get(a:scope, 'asyncdo')) == v:t_dict
             echoerr 'There is currently running job, just wait' | return
@@ -42,7 +42,6 @@ func! s:build(scope, prefix, reset, settitle) abort
         let l:spec = [&shell, &shellcmdflag, printf(l:job.cmd.&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}
 
-        call a:reset(l:job.nr)
         if has('nvim')
             let l:job.id = jobstart(l:spec, {'on_exit': l:Cb})
         else
@@ -69,10 +68,8 @@ func! s:build(scope, prefix, reset, settitle) abort
     return { 'run': funcref('Run'), 'stop': funcref('Stop') }
 endfunc
 
-let s:qf = s:build(g:, 'c', {nr -> setqflist([], 'r')},
-            \ {title, nr -> setqflist([], 'a', {'title': title})})
-let s:ll = s:build(w:, 'l', {nr -> setloclist(nr, [], 'r')},
-            \ {title, nr -> setloclist(nr, [], 'a', {'title': title})})
+let s:qf = s:build(g:, 'c', {title, nr -> setqflist([], 'a', {'title': title})})
+let s:ll = s:build(w:, 'l', {title, nr -> setloclist(nr, [], 'a', {'title': title})})
 
 func! asyncdo#run(...) abort
     call call(s:qf.run, a:000)

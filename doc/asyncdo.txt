@@ -14,17 +14,28 @@ in background).
 FUNCTIONS                                       *asyncdo-functions*
 
 asyncdo#run({nojump}, {cmd}, {args} ...)        *asyncdo#run()*
-                 Run {cmd} in background and populate |quicklist|. {args} are
-                 argument list appended to {cmd} or replace $* pattern found
-                 in {cmd}. Example: >
-                        call asyncdo#run(0, "make", "test")
-<                 {nojump} decides whether this should jump to first result.
+                {cmd} can either be a string command to run, or a dictionary
+                containing a "job" entry. When {cmd} is a dictionary, it can
+                contain the following entries, all optional except for "job":
 
-                 Current process definition is stored in |g:asyncdo_job| and
-                 trying to call |asyncdo#run| while that variable is present
-                 will result in error.
+                    job          the command to run in the background
+                    errorformat  errorformat to apply to the output of "job"
+                    title        quickfix title to apply
 
-                 Also see |:AsyncDo| and |g:asyncdo_job|
+                Run {cmd} (or {cmd}.job) in the background and populate
+                |quicklist|. {args} are argument list appended to {cmd} or
+                replace $* pattern found in {cmd}. Example: >
+                       call asyncdo#run(0, "make", "test")
+                       call asyncdo#run(1,
+                          \ {'job': &grepprg, 'errorformat': &grepformat},
+                          \ "test")
+<                {nojump} decides whether this should jump to first result.
+
+                Current process definition is stored in |g:asyncdo_job| and
+                trying to call |asyncdo#run| while that variable is present
+                will result in error.
+
+                Also see |:AsyncDo| and |g:asyncdo_job|
 
 asyncdo#stop()                                 *asyncdo#stop()*
                 Stop job started by |asyncdo#run()|.

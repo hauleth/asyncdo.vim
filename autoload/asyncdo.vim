@@ -9,7 +9,7 @@ func! s:finalize(scope, prefix, settitle) abort
             let &errorformat = l:job.errorformat
         endif
         exe a:prefix.(l:job.jump ? '' : 'get').'file '.l:job.file
-        call a:settitle(l:job.cmd, l:job.nr)
+        call a:settitle(has_key(l:job, 'title') ? l:job.title : l:job.cmd, l:job.nr)
     finally
         let &errorformat = l:tmp
         unlet! a:scope.asyncdo

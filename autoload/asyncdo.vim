@@ -33,13 +33,14 @@ func! s:build(scope, prefix, settitle) abort
 
         call extend(l:job, {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump})
         let l:args = copy(a:000)
-        call map(l:args, {_, a -> expand(substitute(a, '\\', '\\\\\\', 'g'))})
+        call map(l:args, {_, a -> substitute(substitute(a, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g'), '\\', '\\\\\\', 'g')})
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else
             let l:job.cmd = join([l:cmd] + l:args)
         endif
-        let l:spec = [&shell, &shellcmdflag, printf(l:job.cmd.&shellredir, l:job.file)]
+        echom l:job.cmd
+        let l:spec = [&shell, &shellcmdflag, l:job.cmd . printf(&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}
         if !has_key(l:job, 'errorformat')
           let l:job.errorformat = &errorformat

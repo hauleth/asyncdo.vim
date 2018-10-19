@@ -17,6 +17,12 @@ func! s:finalize(scope, prefix, settitle) abort
     endtry
 endfunc
 
+func! s:escape(...) abort
+  " if there are two args, s:escape is called from map(). use 2nd arg
+  let str = a:0 == 2 ? a:2 : a:1
+  return substitute(substitute(str, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g'), '\\', '\\\\\\', 'g')
+endfunc
+
 func! s:build(scope, prefix, settitle) abort
     function! Run(nojump, cmd, ...) abort closure
         if type(get(a:scope, 'asyncdo')) == v:t_dict
@@ -32,8 +38,9 @@ func! s:build(scope, prefix, settitle) abort
         endif
 
         call extend(l:job, {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump})
+        let l:cmd = s:escape(l:cmd)
         let l:args = copy(a:000)
-        call map(l:args, {_, a -> substitute(substitute(a, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g'), '\\', '\\\\\\', 'g')})
+        call map(l:args, funcref('s:escape'))
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else

@@ -30,7 +30,7 @@ endfunc
 func! s:escape(...) abort
   " if there are two args, s:escape is called from map(). use 2nd arg
   let str = a:0 == 2 ? a:2 : a:1
-  return s:slashescape(s:fnameexpand(str))
+  return expand(s:slashescape(s:fnameexpand(str)))
 endfunc
 
 func! s:build(scope, prefix, settitle) abort

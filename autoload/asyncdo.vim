@@ -17,10 +17,20 @@ func! s:finalize(scope, prefix, settitle) abort
     endtry
 endfunc
 
+" expand filename-modifiers explicitly
+func! s:fnameexpand(str) abort
+  return substitute(a:str, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g')
+endfunc
+
+" prepare backslashes for shell consumption via job logic in s:build
+func! s:slashescape(str) abort
+  return substitute(a:str, '\\', '\\\\\\', 'g')
+endfunc
+
 func! s:escape(...) abort
   " if there are two args, s:escape is called from map(). use 2nd arg
   let str = a:0 == 2 ? a:2 : a:1
-  return substitute(substitute(str, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g'), '\\', '\\\\\\', 'g')
+  return expand(s:slashescape(s:fnameexpand(str)))
 endfunc
 
 func! s:build(scope, prefix, settitle) abort

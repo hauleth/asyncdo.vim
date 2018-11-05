@@ -27,10 +27,15 @@ func! s:slashescape(str) abort
   return substitute(a:str, '\\', '\\\\\\', 'g')
 endfunc
 
-func! s:escape(...) abort
-  " if there are two args, s:escape is called from map(). use 2nd arg
-  let str = a:0 == 2 ? a:2 : a:1
-  return expand(s:slashescape(s:fnameexpand(str)))
+" expand cmdline-special variables
+func! s:specialexpand(str) abort
+  return substitute(a:str,
+        \ '\v\<([cas]file|abuf|amatch|slnum|sflnum|cword|cWORD|client)\>',
+        \ {a->expand(a[0])}, 'g')
+endfunc
+
+func! s:escape(str) abort
+  return s:slashescape(s:specialexpand(s:fnameexpand(a:str)))
 endfunc
 
 func! s:build(scope, prefix, settitle) abort
@@ -48,14 +53,13 @@ func! s:build(scope, prefix, settitle) abort
         endif
 
         call extend(l:job, {'nr': win_getid(), 'file': tempname(), 'jump': !a:nojump})
-        let l:cmd = s:escape(l:cmd)
         let l:args = copy(a:000)
-        call map(l:args, funcref('s:escape'))
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else
             let l:job.cmd = join([l:cmd] + l:args)
         endif
+        let l:job.cmd = s:escape(l:job.cmd)
         echom l:job.cmd
         let l:spec = [&shell, &shellcmdflag, l:job.cmd . printf(&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}

@@ -19,7 +19,7 @@ endfunc
 
 " expand filename-modifiers explicitly
 func! s:fnameexpand(str) abort
-  return substitute(a:str, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g')
+  return substitute(a:str, '\v\\\@<!(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g')
 endfunc
 
 " prepare backslashes for shell consumption via job logic in s:build

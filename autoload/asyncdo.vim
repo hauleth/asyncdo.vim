@@ -1,6 +1,8 @@
 func! s:finalize(scope, prefix, settitle) abort
     let l:job = get(a:scope, 'asyncdo')
-    if type(l:job) isnot v:t_dict | return | endif
+    if type(l:job) isnot v:t_dict
+        return
+    endif
     try
         let l:tmp = &errorformat
         if has_key(l:job, 'errorformat')
@@ -15,15 +17,25 @@ func! s:finalize(scope, prefix, settitle) abort
     endtry
 endfunc
 
-" Regexes shamely stolen from vim-dispatch
-" https://github.com/tpope/vim-dispatch/blob/d4b8940fd1cd77fc6d300f003b18745a584295b2/autoload/dispatch.vim#L60
-let s:var = '\%(<\%(cword\|cWORD\|cexpr\|cfile\|sfile\|slnum\|afile\|abuf\|amatch' . (has('clientserver') ? '\|client' : '') . '\)>\|%\|#<\=\d\+\|##\=\)'
-let s:flags = '<\=\%(:[p8~.htre]\|:g\=s\(.\).\{-\}\1.\{-\}\1\)*\%(:S\)\='
-let s:expandable = '\\*\%(`[+-]\==[^`]*`\|' . s:var . s:flags . '\)'
-func! s:escape(...) abort
-  " if there are two args, s:escape is called from map(). use 2nd arg
-  let str = a:0 == 2 ? a:2 : a:1
-  return shellescape(substitute(str, s:expandable, {a->expand(a[0])}, 'g'))
+" expand filename-modifiers explicitly
+func! s:fnameexpand(str) abort
+  return substitute(a:str, '\v(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g')
+endfunc
+
+" prepare backslashes for shell consumption via job logic in s:build
+func! s:slashescape(str) abort
+  return substitute(a:str, '\\', '\\\\\\', 'g')
+endfunc
+
+" expand cmdline-special variables
+func! s:specialexpand(str) abort
+  return substitute(a:str,
+        \ '\v\<([cas]file|abuf|amatch|slnum|sflnum|cword|cWORD|client)\>',
+        \ {a->expand(a[0])}, 'g')
+endfunc
+
+func! s:escape(str) abort
+  return s:slashescape(s:specialexpand(s:fnameexpand(a:str)))
 endfunc
 
 func! s:build(scope, prefix, settitle) abort
@@ -32,7 +44,7 @@ func! s:build(scope, prefix, settitle) abort
             echoerr 'There is currently running job, just wait' | return
         endif
 
-        if type(a:cmd) == v:t_dict
+        if type(a:cmd) == type({})
             let l:job = deepcopy(a:cmd)
             let l:cmd = a:cmd.job
         else
@@ -69,7 +81,7 @@ func! s:build(scope, prefix, settitle) abort
     func! Stop() abort closure
         let l:job = get(a:scope, 'asyncdo')
         if type(l:job) is v:t_dict
-            has('nvim')
+            if has('nvim')
                 call jobstop(l:job.id)
             else
                 call job_stop(l:job.id)

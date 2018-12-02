@@ -1,8 +1,6 @@
 func! s:finalize(scope, prefix, settitle) abort
     let l:job = get(a:scope, 'asyncdo')
-    if type(l:job) isnot v:t_dict
-        return
-    endif
+    if type(l:job) isnot v:t_dict | return | endif
     try
         let l:tmp = &errorformat
         if has_key(l:job, 'errorformat')
@@ -19,23 +17,16 @@ endfunc
 
 " expand filename-modifiers explicitly
 func! s:fnameexpand(str) abort
-  return substitute(a:str, '\v\\\@<!(\%|\#)(\:[phrte])*', {a->expand(a[0])}, 'g')
+    return substitute(a:str, '\v\\=%(\%|\#)%(\:[phrte])*', {a->expand(a[0])}, 'g')
 endfunc
 
 " prepare backslashes for shell consumption via job logic in s:build
 func! s:slashescape(str) abort
-  return substitute(a:str, '\\', '\\\\\\', 'g')
-endfunc
-
-" expand cmdline-special variables
-func! s:specialexpand(str) abort
-  return substitute(a:str,
-        \ '\v\<([cas]file|abuf|amatch|slnum|sflnum|cword|cWORD|client)\>',
-        \ {a->expand(a[0])}, 'g')
+    return substitute(a:str, '\\', '\\\\\\', 'g')
 endfunc
 
 func! s:escape(str) abort
-  return s:slashescape(s:specialexpand(s:fnameexpand(a:str)))
+    return s:slashescape(s:fnameexpand(a:str))
 endfunc
 
 func! s:build(scope, prefix, settitle) abort
@@ -57,9 +48,8 @@ func! s:build(scope, prefix, settitle) abort
         if l:cmd =~# '\$\*'
             let l:job.cmd = substitute(l:cmd, '\$\*', join(l:args), 'g')
         else
-            let l:job.cmd = join([l:cmd] + l:args)
+            let l:job.cmd = join([s:escape(l:cmd)] + l:args)
         endif
-        let l:job.cmd = s:escape(l:job.cmd)
         echom l:job.cmd
         let l:spec = [&shell, &shellcmdflag, l:job.cmd . printf(&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}

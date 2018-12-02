@@ -114,7 +114,7 @@ There is no collision between these two plugins, however for plugins using
 dispatch plugin for async work (like Fugitive) you can add this in your |vimrc|
 to use |:AsyncDo| instead:
 >
-    command! -bang -nargs=* Make call asyncdo#run(<bang>0, &makeprg, <f-args>)
+    command! -bang -nargs=* -complete=file Make call asyncdo#run(<bang>0, &makeprg, <f-args>)
 <
 
                                                *asyncdo-integrations-grep*
@@ -123,7 +123,10 @@ Async grep ~
 Making |:grep| to run asynchronously is also quite trivial with:
 
 >
-    command! -bang -nargs=* Grep call asyncdo#run(<bang>0, &grepprg, <f-args>)
+    command! -bang -nargs=* -complete=dir Grep call asyncdo#run(
+                \ <bang>0,
+                \ { 'job': &grepprg, 'errorformat': &grepformat },
+                \ <f-args>)
 <
 
  vim:tw=78:et:ft=help:norl:

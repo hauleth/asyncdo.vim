@@ -51,14 +51,14 @@ func! s:build(scope, prefix, settitle) abort
             let l:job.cmd = join([s:escape(l:cmd)] + l:args)
         endif
         echom l:job.cmd
-        let l:spec = [&shell, &shellcmdflag, l:job.cmd . printf(&shellredir, l:job.file)]
+        let l:spec = split(&shell) + split(&shellcmdflag) + [l:job.cmd . printf(&shellredir, l:job.file)]
         let l:Cb = {-> s:finalize(a:scope, a:prefix, a:settitle)}
         if !has_key(l:job, 'errorformat')
           let l:job.errorformat = &errorformat
         endif
 
         if has('nvim')
-            let l:job.id = jobstart(l:spec, {'on_exit': l:Cb})
+            let l:job.id = jobstart(l:spec, {'on_exit': l:Cb, 'pty': v:true})
         else
             let l:job.id = job_start(l:spec, {
                         \   'in_io': 'null','out_io': 'null','err_io': 'null',

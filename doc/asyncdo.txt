@@ -96,7 +96,7 @@ statusline ~
 To display status of |:AsyncDo| in your statusline just check for existence of
 |g:asyncdo_job|
 >
-    let &statusline .= "%{exists('g:asyncdo')?'runing':''}"
+    let &statusline .= "%{exists('g:asyncdo')?'running':''}"
 <
 
                                                *asyncdo-integrations-qf*

@@ -114,7 +114,7 @@ There is no collision between these two plugins, however for plugins using
 dispatch plugin for async work (like Fugitive) you can add this in your |vimrc|
 to use |:AsyncDo| instead:
 >
-    command! -bang -nargs=* -complete=file Make call asyncdo#run(<bang>0, &makeprg, <f-args>)
+    command! -bang -nargs=* -complete=file Make call asyncdo#run(<bang>0, &makeprg, expandcmd(<q-args>))
 <
 
                                                *asyncdo-integrations-grep*
